@@ -1,8 +1,8 @@
 package Storage;
 
 public class Address {
-    int blkId; //id of the block
-    int offset;  //offset within the block
+    int blkId;
+    int offset;
 
     public Address(int blkId, int offset) {
         this.blkId = blkId;
