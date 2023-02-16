@@ -22,6 +22,7 @@ public class InternalNode extends Node {
     //add child in that internal node
     public int doChildInsertion(Node child) {
         int position = 0;
+
         // add child at position 0 if there is no childNodes
         if (childNodes.size() == 0) {
             childNodes.add(child);

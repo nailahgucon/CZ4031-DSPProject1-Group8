@@ -17,6 +17,7 @@ import java.util.List;
 
 import Config.Config;
 
+
 public class Main implements Config {
     private Disk disk;
     private BPTree BpTree;
@@ -88,6 +89,23 @@ public class Main implements Config {
     }
 
     public void runExperiment3() {
+        System.out.println("\nRunning Experiment 3...");
+
+        long startTime = System.nanoTime();
+        ArrayList<Address> dataAddress = BpTree.showExperiment3(500); // “numVotes” equal to 500 and store them into ArrayList
+        ArrayList<Record> records = disk.doRecordRetrieval(dataAddress); // To store all the records fit the condition above
+
+        double averageRate = 0;
+        for (Record r : records) {
+            averageRate += r.getAverageRating();
+        }
+
+        averageRate /= records.size(); //total rating divide by the size of the arraylist to get the average
+
+        System.out.println("The average rating of the records that numVotes = 500 is " + averageRate);
+        long runtime = System.nanoTime() - startTime;
+
+        System.out.println("The running time of the retrieval process is " + runtime/1000000 + " ms");
 
     }
 

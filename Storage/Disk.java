@@ -36,7 +36,8 @@ public class Disk {
         int blockId = getIdOfLastBlk();
         return doRecordInsertionAt(blockId, record);
     }
-
+    // Checks if Disk reaches the max capacity of blocks and checks if block have enough space to add a record,
+    //If the block do not have enough space, create a new block and insert the record
     private Address doRecordInsertionAt(int blockId, Record record) throws Exception {
         Block block = null;
 
@@ -60,6 +61,7 @@ public class Disk {
         return new Address(blockId, offset);
     }
 
+    // retrieve the record from the address of the block and retrieve the record based on the address offset
     public Record doRecordFetch(Address address) {
         return blkList.get(address.blkId).data[address.offset];
     }

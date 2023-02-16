@@ -50,6 +50,7 @@ public class BPTree {
         this.doLeafNodeInsertion(this.doLeafNodeSearch(key), key, address);
     }
 
+    //The root node is the internal node
     public LeafNode doLeafNodeSearch(int key) {
         if (this.root.getIsLeafNode())
             return (LeafNode) root;
@@ -58,15 +59,20 @@ public class BPTree {
         InternalNode internalNode = (InternalNode) root;
 
         keys = internalNode.getKeys();
+
         int i;
 
+        // Checks if there is a key in the internal node smaller than the input key
         for (i = 0; i < keys.size(); i++) {
             if (key < keys.get(i)) {
                 break;
             }
         }
 
+        // Retrieves the child node of the internal node
         Node child = internalNode.getChildNode(i);
+
+        // If the node is a left node, return the node
         if (child.getIsLeafNode()) {
             return (LeafNode) child;
         } else {
@@ -74,6 +80,7 @@ public class BPTree {
         }
 
     }
+
 
     public LeafNode doLeafNodeSearch(InternalNode internalNode, int key) {
         ArrayList<Integer> keys = internalNode.getKeys();
@@ -377,6 +384,7 @@ public class BPTree {
             }
             duplicate = parent.getInternalNode();
         }
+
         //There are insufficient extra keys for borrowing, we merge.
         else {
             // If there is vacancy for right node
@@ -435,19 +443,19 @@ public class BPTree {
                 if (searchingKey <= internalNode.getKey(i)) {
                     currNode = internalNode.getChildNode(i); //look deeper into bottom left (smallest) child
                     blockAccess++;
-                    if (isPrint && blockAccess <= 5) { //to prevent terminal output when deleting nodes
-                        System.out.printf("Go to child node [%d], current key [%d], searching key [%d] node accessed: %d\n", i, internalNode.getKey(i), searchingKey, blockAccess);
-                        System.out.printf("Content of the index node: %s\n", currNode.getKeys().toString());
-                    }
+//                    if (isPrint && blockAccess <= 5) { //to prevent terminal output when deleting nodes
+//                        System.out.printf("Go to child node [%d], current key [%d], searching key [%d] node accessed: %d\n", i, internalNode.getKey(i), searchingKey, blockAccess);
+//                        System.out.printf("Content of the index node: %s\n", currNode.getKeys().toString());
+//                    }
                     break;
                 }
                 if (i == internalNode.getKeys().size() - 1) { //if no smaller key can be found, mean look at the right child node
                     currNode = internalNode.getChildNode(i + 1);
                     blockAccess++;
-                    if (isPrint && blockAccess <= 5) {
-                        System.out.printf("Go to child node [%d], current key [%d], searching key [%d] node accessed: %d\n", i, internalNode.getKey(i), searchingKey, blockAccess);
-                        System.out.printf("Content of the index node: %s\n", currNode.getKeys().toString());
-                    }
+//                    if (isPrint && blockAccess <= 5) {
+//                        System.out.printf("Go to child node [%d], current key [%d], searching key [%d] node accessed: %d\n", i, internalNode.getKey(i), searchingKey, blockAccess);
+//                        System.out.printf("Content of the index node: %s\n", currNode.getKeys().toString());
+//                    }
 
                     break;
                 }
@@ -458,10 +466,10 @@ public class BPTree {
         boolean finish = false;
         while (!finish && curr != null) {
             // finding same keys within leaf node
-            if (isPrint && blockAccess <= 5) {
-                blockAccess++;
-                System.out.printf("Content of the leaf node: %s, node accessed: %s\n", curr.getKeys().toString(), blockAccess);
-            }
+//            if (isPrint && blockAccess <= 5) {
+//                blockAccess++;
+//                System.out.printf("Content of the leaf node: %s, node accessed: %s\n", curr.getKeys().toString(), blockAccess);
+//            }
 
             for (int i = 0; i < curr.getKeys().size(); i++) {
                 // found same key, add into result list
@@ -487,11 +495,11 @@ public class BPTree {
             }
         }
         if (isPrint) {
-            if (siblingAccess > 0) {
-                System.out.println("the No of nodes accesses in siblings: " + siblingAccess);
-            }
+//            if (siblingAccess > 0) {
+//                System.out.println("the No of nodes accesses in siblings: " + siblingAccess);
+//            }
             System.out.println("Searching numOfVotes = " + searchingKey + " the No of records accessed = " + result.size());
-            System.out.printf("Total No of nodes accesses: %d, total No of block accesses: %d\n", blockAccess, result.size() + blockAccess);
+            System.out.printf("Total no of index nodes accesses: %d, Total no of data block accesses: %d\n", blockAccess, result.size() + blockAccess);
         }
 
 
