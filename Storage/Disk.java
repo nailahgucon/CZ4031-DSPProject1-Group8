@@ -24,6 +24,11 @@ public class Disk {
         blkCounts = blkList.size();
     }
 
+    public ArrayList<Block> doBlockRetrieval(){
+        return this.blkList;
+    }
+
+
     public int getSizeOfDiskUsed() {
         return blkCounts * blkSize;
     }
@@ -45,6 +50,7 @@ public class Disk {
             block = blkList.get(blockId);
         }
 
+        // unspanned
         // if no available blocks, create a new block to do insertion
         if (block == null || block.isBlockFull()) {
             if (blkList.size() == maxBlkSize) {
@@ -96,7 +102,7 @@ public class Disk {
                     Block block = this.blkList.get(address.blkId);
                     Record records[] = block.data;
 
-                    System.out.printf("Content of Data Blocks [blockId: %d] Accessed: %s\n", address.blkId, Arrays.toString(records));
+//                    System.out.printf("Content of Data Blocks [blockId: %d] Accessed: %s\n", address.blkId, Arrays.toString(records));
                     blkAccess++;
                 }
                 recordList.add(doRecordFetch(address));

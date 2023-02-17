@@ -5,6 +5,9 @@ public class Record {
     public float averageRating;
     public int numVotes;
 
+    public Record(){
+
+    }
     public Record(String tconst, float averageRating, int numVotes) {
         this.tconst = tconst;
         this.averageRating = averageRating;

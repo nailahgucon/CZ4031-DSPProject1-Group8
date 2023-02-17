@@ -2,6 +2,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 import BPlusTree.BPTree;
+import BruteForceLinearScan.LinearScan;
 import Storage.Disk;
 import Storage.Address;
 import Storage.Record;
@@ -71,7 +72,7 @@ public class Main implements Config {
 
         Address dataAddr;  //Address that the data is going to be stored
         for (Record d : data) {
-            dataAddr = disk.doRecordAppend(d); //Insert the records data into disk
+            dataAddr = disk.doRecordAppend(d); //Insert the records data into disk & retrieve the addresses of the records
             BpTree.doBPTreeInsertion(d.getNumVotes(), dataAddr); //Since we build the B+ tree on the "numVotes" attribute, so we extract the attribute
         }
         System.out.println("Run Successful! The records have been successfully inserted into the disk and the B+ Tree has been created.");
@@ -95,6 +96,9 @@ public class Main implements Config {
         ArrayList<Address> dataAddress = BpTree.showExperiment3(500); // “numVotes” equal to 500 and store them into ArrayList
         ArrayList<Record> records = disk.doRecordRetrieval(dataAddress); // To store all the records fit the condition above
 
+        long runtime = System.nanoTime() - startTime;
+        System.out.println("The running time of the retrieval process is " + runtime/1000000 + " ms");
+
         double averageRate = 0;
         for (Record r : records) {
             averageRate += r.getAverageRating();
@@ -103,9 +107,24 @@ public class Main implements Config {
         averageRate /= records.size(); //total rating divide by the size of the arraylist to get the average
 
         System.out.println("The average rating of the records that numVotes = 500 is " + averageRate);
-        long runtime = System.nanoTime() - startTime;
 
-        System.out.println("The running time of the retrieval process is " + runtime/1000000 + " ms");
+
+        startTime = System.nanoTime();
+
+        LinearScan ls = new LinearScan(disk.doBlockRetrieval());
+        records = ls.doLinearScan(500);
+
+        runtime = System.nanoTime() - startTime;
+        System.out.println("The running time of the retrieval process (brute-force linear scan method) is " + runtime/1000000 + " ms");
+
+        averageRate = 0;
+        for (Record r : records) {
+            averageRate += r.getAverageRating();
+        }
+
+        averageRate /= records.size(); //total rating divide by the size of the arraylist to get the average
+
+        System.out.println("The average rating of the records that numVotes = 500 (brute-force linear scan method) is " + averageRate);
 
     }
 

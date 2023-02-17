@@ -18,6 +18,10 @@ public class Block {
         return currRecords >= maxRecords;
     }
 
+    // return all the records in the block
+    public Record[] doAllRecordRetrieval() {
+        return this.data;
+    }
     public int doRecordInsertion(Record newRecord) {
         int offset = -1;
         try {

@@ -431,9 +431,9 @@ public class BPTree {
         int siblingAccess = 0;
         ArrayList<Address> recordsAddressList = new ArrayList<>();
 
-        if (isPrint) {
-            System.out.printf("access root and nodes accesses: %d, contents of the root node: %s\n", blockAccess, this.root.getKeys().toString());
-        }
+//        if (isPrint) {
+//            System.out.printf("access root and nodes accesses: %d, contents of the root node: %s\n", blockAccess, this.root.getKeys().toString());
+//        }
         Node currNode = root;
         InternalNode internalNode;
         // searching for leaf node with key
@@ -499,7 +499,11 @@ public class BPTree {
 //                System.out.println("the No of nodes accesses in siblings: " + siblingAccess);
 //            }
             System.out.println("Searching numOfVotes = " + searchingKey + " the No of records accessed = " + result.size());
-            System.out.printf("Total no of index nodes accesses: %d, Total no of data block accesses: %d\n", blockAccess, result.size() + blockAccess);
+
+            System.out.println("B+ tree");
+            System.out.println("------------------------------------------------------------------");
+            System.out.printf("Total no of index nodes accesses: %d\n", blockAccess);
+            System.out.printf("Total no of data block accesses: %d\n", result.size() + blockAccess);
         }
 
 
