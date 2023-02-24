@@ -78,7 +78,10 @@ public class Disk {
         try {
             for (Address address : addressList) {
                 block = blkList.get(address.blkId);
+//                System.out.println(String.format("Original num of records %s",block.currRecords));
+//                System.out.println(Arrays.toString(block.data));
                 boolean result = block.doRecordDeletionAt(address.offset);
+//                System.out.println(String.format("After deletion num of records %s",block.currRecords));
                 countOfRecords--;
                 if(result){
                     blkCounts--;
@@ -112,7 +115,9 @@ public class Disk {
         }
         return recordList;
     }
-
+    public int getCurrentBlkCounts() {
+        return blkCounts;
+    }
     public void showDetails(){
         System.out.println("Num of records: " + countOfRecords);
         System.out.println("Size of a record: " + Storage.Record.size());

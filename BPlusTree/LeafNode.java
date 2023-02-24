@@ -36,6 +36,7 @@ public class LeafNode extends Node{
         for (int i = addresses.size() -2; i >= index; i--)
             addresses.set(i+1, addresses.get(i));
 
+        //set the key index in the current node and the address of the current node
         addresses.set(index, address);
         return index;
     }
@@ -59,7 +60,9 @@ public class LeafNode extends Node{
     }
 
     public void doSeparation(){
+        //Delete all keys
         doKeysDeletion();
+        //reset all the addresses
         addresses = new ArrayList<Address>();
     }
 

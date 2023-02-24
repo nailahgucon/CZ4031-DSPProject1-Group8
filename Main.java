@@ -133,6 +133,18 @@ public class Main implements Config {
     }
 
     public void runExperiment5() {
+        //For now,we are kinda of deleting the records for each block but then ah the block are considered deleted
+        //after each record deletion
+        disk.doRecordDeletion(BpTree.doKeyRemoval(1000));
+        runExperiment2();
+
+        LinearScan ls = new LinearScan();
+        ls.doLinearScanDeletion(1000,disk);
+        try {
+            doBlockCreation(BLOCK_SIZE_200);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
 
     }
 

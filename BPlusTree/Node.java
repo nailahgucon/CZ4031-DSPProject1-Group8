@@ -116,13 +116,13 @@ public class Node {
             internalNode.doChildNodeDeletion(this);
             internalNode = null;
         }
-        // if it is a leaf
+        // if yourself is a leaf node
         if (isLeafNode){
             LeafNode leafNode = (LeafNode) this;
             leafNode.deleteAddresses(); //delete all the addresses
             leafNode.setNextNode(null); //set your next leaf as null
         }
-        // if it is an internal node
+        // if yourself is an internal node
         else{
             InternalNode intNode = (InternalNode) this;
             intNode.doAllChildNodesDeletion();
