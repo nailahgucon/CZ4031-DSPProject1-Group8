@@ -51,6 +51,7 @@ public class BPTree {
     }
 
     //The root node is the internal node
+    // Retrieves a leaf node that the range of the key falls into
     public LeafNode doLeafNodeSearch(int key) {
         if (this.root.getIsLeafNode())
             return (LeafNode) root;
@@ -151,6 +152,7 @@ public class BPTree {
         //re-insert the latest keys and addresses from local array into the two leaf nodes
         for (i = 0; i < minNoOfLeafKeys; i++)
             prevLeaf.setAddress(keys[i], addresses[i]);
+
         //continue to insert into new leaf
         for (i = minNoOfLeafKeys; i < maxNoOfKeys + 1; i++)
             newLeaf.setAddress(keys[i], addresses[i]);
@@ -236,12 +238,16 @@ public class BPTree {
         noOfNodes++;
     }
 
+    //remove the key from the leaf node
     public ArrayList<Address> doKeyRemoval(int key) {
         ArrayList<Integer> keys;
         LeafNode leafNode;
         ArrayList<Address> addressList = new ArrayList<>();
+
         ArrayList<Address> returnAddressListToDelete = doRecordsWithKeysRetrieval(key, false);
+
         int length = doRecordsWithKeysRetrieval(key, false).size();
+
         //Searching the records with the given key value
         for (int j = 0; j < length; j++) {
             leafNode = doLeafNodeSearch(key);
@@ -257,11 +263,15 @@ public class BPTree {
                 }
             }
         }
+
         System.out.println("No of nodes deleted: " + noOfNodesDeleted);
+
         noOfNodes -= noOfNodesDeleted;
+
         return returnAddressListToDelete;
     }
 
+    //When the leaf node does not meet the min no of keys requirement
     public void doLeafCleaning(LeafNode leafNode) {
 
         //If no need to change node, reset parent and finish
@@ -278,7 +288,7 @@ public class BPTree {
         LeafNode right = (LeafNode) leafNode.getInternalNode().getRightSiblingNode(leafNode);
         InternalNode copy;
 
-        //Getting the extra No of keys left/right node can give
+        //Getting the extra No of keys left/right sibling node can give
         if (left != null) leftExcess += left.getKeys().size() - minNoOfLeafKeys;
         if (right != null) rightExcess += right.getKeys().size() - minNoOfLeafKeys;
 
@@ -319,6 +329,8 @@ public class BPTree {
             //Pointer will be changed to the right node
             left.setNextNode(leafNode.getNextNode());
 
+
+            //removes the leaf node in the B+ tree
             leafNode.doNodeDeletion();
             noOfNodesDeleted++;
         }
@@ -403,6 +415,8 @@ public class BPTree {
 
             // After merging, we delete the node
             duplicate = parent.getInternalNode();
+
+            //removes the parent node
             parent.doNodeDeletion();
             noOfNodesDeleted++;
         }
@@ -424,6 +438,7 @@ public class BPTree {
     public ArrayList<Address> showExperiment3(int searchingKey) {
         return doRecordsWithKeysRetrieval(searchingKey, true);
     }
+
 
     private ArrayList<Address> doRecordsWithKeysRetrieval(int searchingKey, boolean isPrint) {
         ArrayList<Address> result = new ArrayList<>();
@@ -464,6 +479,7 @@ public class BPTree {
         // after leaf node is found, find all records with same key
         LeafNode curr = (LeafNode) currNode;
         boolean finish = false;
+        // compare the keys in the leaf node and the searching key
         while (!finish && curr != null) {
             // finding same keys within leaf node
 //            if (isPrint && blockAccess <= 5) {
@@ -474,6 +490,7 @@ public class BPTree {
             for (int i = 0; i < curr.getKeys().size(); i++) {
                 // found same key, add into result list
                 if (curr.getKey(i) == searchingKey) {
+                    // add the keys
                     result.add(curr.getAddress(i));
                     continue;
                 }
@@ -485,6 +502,7 @@ public class BPTree {
             }
             if (!finish) {
                 // trying to check sibling node has remaining records of same key
+                // replace the curr node var with the next node
                 if (curr.getNextNode() != null) {
                     curr = curr.getNextNode();
                     blockAccess++;

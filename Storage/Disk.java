@@ -83,6 +83,7 @@ public class Disk {
                 boolean result = block.doRecordDeletionAt(address.offset);
 //                System.out.println(String.format("After deletion num of records %s",block.currRecords));
                 countOfRecords--;
+                // NOT SURE WHY THIS CODE IS HERE COZ WHY WE DELETING THE ENTIRE BLOCK WHEN WE DELETING RECORD ONLY
                 if(result){
                     blkCounts--;
                 }

@@ -127,6 +127,8 @@ public class Node {
             InternalNode intNode = (InternalNode) this;
             intNode.doAllChildNodesDeletion();
         }
+
+        //resets the node to the original state
         isRootNode = true;
         isLeafNode = true;
         keys = new ArrayList<>();

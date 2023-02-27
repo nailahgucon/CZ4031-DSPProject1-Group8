@@ -19,6 +19,7 @@ public class InternalNode extends Node {
     public Node getChildNode(int i) {
         return childNodes.get(i);
     }
+
     //add child in that internal node
     public int doChildInsertion(Node child) {
         int position = 0;
@@ -41,6 +42,7 @@ public class InternalNode extends Node {
             position = this.setKey(smallestChildKey);
             this.childNodes.add(position + 1, child);
         }
+
         else{
             this.setKey(smallestParentKey);
             this.childNodes.add(position, child);
@@ -68,6 +70,7 @@ public class InternalNode extends Node {
     public void doAllChildNodesDeletion() {
         childNodes = new ArrayList<Node>();
     }
+
     //delete one child from the internal node
     public void doChildNodeDeletion(Node child) {
         childNodes.remove(child);
@@ -77,14 +80,14 @@ public class InternalNode extends Node {
             setKey(childNodes.get(i).doSmallestKeyRetrieval());
         }
     }
-    //get the sibling node that is on the left
+    //get the sibling node that is on the left which is the child nodes
     public Node getLeftSiblingNode(Node node) {
         if (childNodes.indexOf(node) > 0) {
             return childNodes.get(childNodes.indexOf(node) - 1);
         }
         return null;
     }
-    //get the sibling node that is on the right of the node
+    //get the sibling node that is on the right of the node which is the child nodes
     public Node getRightSiblingNode(Node node) {
         if (childNodes.indexOf(node) < childNodes.size() - 1) {
             return childNodes.get(childNodes.indexOf(node) + 1);
