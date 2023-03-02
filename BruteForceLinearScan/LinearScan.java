@@ -88,7 +88,6 @@ public class LinearScan {
                 if (r != null && r.getNumVotes() == key) {
                     Address add = new Address(blkid,count);
                     addressList.add(add);
-
                 }
                 count++;
             }
