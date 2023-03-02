@@ -183,12 +183,17 @@ public class Main implements Config {
 
     public void runExperiment5() {
         System.out.println("\nRunning Experiment 5...");
+        long startTime = System.nanoTime();
         disk.doRecordDeletion(BpTree.doKeyRemoval(1000));
-        runExperiment2();
+        long runtime = System.nanoTime() - startTime;
+        System.out.println("The running time of the deletion process is " + runtime/1000000 + " ms");
+        BpTree.showExperiment2();
 
+        startTime = System.nanoTime();
         LinearScan ls = new LinearScan();
         ls.doLinearScanDeletion(1000,disk);
-
+        runtime = System.nanoTime() - startTime;
+        System.out.println("The running time of the deletion process is (brute-force linear scan method) " + runtime/1000000 + " ms");
     }
 
 
