@@ -22,6 +22,15 @@ public class Block {
     public Record[] doAllRecordRetrieval() {
         return this.data;
     }
+
+    /**
+     doRecordInsertion(Record newRecord): Insert a new record into a block of data.
+     If the block is not full:
+        Iterates through the data array to find the first null element and adds the newRecord to that index.
+        It then increments the currRecords counter and returns the offset of the inserted record.
+     If the block is full:
+        Does not add the new record and returns -1 to indicate that the insertion was unsuccessful.
+     */
     public int doRecordInsertion(Record newRecord) {
         int offset = -1;
         try {
@@ -42,16 +51,31 @@ public class Block {
         return offset;
     }
 
+    /**
+     doRecordDeletionAt(int offset): takes offset and attempts to delete the record at that position in the data array of the block.
+
+     If a record exists at the specified offset:
+        Deletion happens by setting the element in the data array to null.
+        Decrements the currRecords count to reflect the deletion.
+
+     Returns a boolean value to indicate whether the record was successfully deleted.
+     */
     public boolean doRecordDeletionAt(int offset){
         boolean success = false;
         if (data[offset] != null){
             data[offset] = null;
+            // if currRecords becomes 0, indicates block is empty, return
             currRecords--;
-            success = true;
+            if (currRecords == 0) {
+                success = true;
+            }
         }
         return success;
     }
 
+    /**
+     doRecordRetrievalAt(int offset): given the offset, do record retrival in the data array of records
+     */
     public Record doRecordRetrievalAt(int offset){
         return data[offset];
     }
