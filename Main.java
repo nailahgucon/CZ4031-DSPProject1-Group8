@@ -23,26 +23,34 @@ public class Main implements Config {
     private Disk disk;
     private BPTree BpTree;
 
+    /**
+     doRecordReading(String directory): reads the given TSV (tab-separated values) dataset file from a given directory
+     and converts each row of data into a Record object.
+
+     String [] category stores tconst, AverageRating and NumVotes.
+     When reading the file, the header is ignored with reader.readLine()
+     Each row of data is split into the 3 attributes and combined into a Record object.
+     The resulting Record objects are stored in a List and returned by the method.
+     The method outputs the total number of records loaded.
+     */
     public static List<Record> doRecordReading(String directory) throws FileNotFoundException {
         System.out.println("Loading data in " + directory + " ...");
         File recordFile = new File(directory);
-        if (!recordFile.exists()) { //if file not cannot be found,
+        if (!recordFile.exists()) {
             throw new FileNotFoundException("File does not exist, Try to change the path of the tsv file in the Config file.");
         }
         System.out.println("Reading data from " + directory + " ...");
 
         String l;
-        String[] category = null; // stores tconst, AverageRating and NumVotes
+        String[] category = null;
         BufferedReader reader = null;
         List<Record> records = new ArrayList<>();
 
         try {
             reader = new BufferedReader(new FileReader(recordFile));
-            reader.readLine(); // ignore the first line
+            reader.readLine();
             while ((l = reader.readLine()) != null) {
                 category = l.split("\\t");
-                //split each row of records according to categories
-                // combine them into a class
                 Record r = new Record(category[0], Float.parseFloat(category[1]), Integer.parseInt(category[2]));
                 records.add(r);
             }
@@ -61,19 +69,26 @@ public class Main implements Config {
         return records;
     }
 
+    /**
+     doBlockCreation(int blkSize): Creates a disk and a B+ tree.
+     A disk variable is created to allocate disk space and a BpTree variable is crated to create a BPlusTree.
+     It reads data from a tsv file using the doRecordReading(), then inserts the data into the disk
+     using doRecordAppend() and retrieves the addresses of the records.
+     doBPTreeInsertion() is called to insert the records into the B+ tree based on their "numVotes" attribute.
+     */
     public void doBlockCreation(int blkSize) throws Exception {
-        disk = new Disk(blkSize); //To allocate the disk space
-        BpTree = new BPTree(blkSize); //To create the BPlusTree
+        disk = new Disk(blkSize);
+        BpTree = new BPTree(blkSize);
         List<Record> data = doRecordReading(DATA_FILE_PATH);
 
         System.out.println();
         System.out.println("Running program...");
         System.out.println("Inserting the data from the tsv file into the disk and creating the B+ Tree...");
 
-        Address dataAddr;  //Address that the data is going to be stored
+        Address dataAddr;
         for (Record d : data) {
-            dataAddr = disk.doRecordAppend(d); //Insert the records data into disk & retrieve the addresses of the records
-            BpTree.doBPTreeInsertion(d.getNumVotes(), dataAddr); //Since we build the B+ tree on the "numVotes" attribute, so we extract the attribute
+            dataAddr = disk.doRecordAppend(d);
+            BpTree.doBPTreeInsertion(d.getNumVotes(), dataAddr);
         }
         System.out.println("Run Successful! The records have been successfully inserted into the disk and the B+ Tree has been created.");
         System.out.println();
@@ -150,7 +165,7 @@ public class Main implements Config {
 
 
     public void displayMenu(int type) throws Exception {
-        if (type == 1) { //To select block size
+        if (type == 1) {
             System.out.println("======================================================================================");
             System.out.println("            << Welcome to Group 8's DSP Project 1 Implementation >>");
             System.out.println();
@@ -205,7 +220,7 @@ public class Main implements Config {
         }
     }
 
-    //End of MainApp Functions
+    //End of Main Functions
     public static void main(String[] args) {
         try {
             Main app = new Main();
