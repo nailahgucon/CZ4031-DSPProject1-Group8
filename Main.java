@@ -129,6 +129,40 @@ public class Main implements Config {
     }
 
     public void runExperiment4() {
+        System.out.println("\nRunning Experiment 4...");
+        //        System.out.println(BpTree.doRangeRecordsRetrieval(30000,40000));
+
+        long startTime = System.nanoTime();
+        ArrayList<Address> dataAddress = BpTree.doRangeRecordsRetrieval1(30000,40000);
+        ArrayList<Record> records = disk.doRecordRetrieval(dataAddress);
+
+        long runtime = System.nanoTime() - startTime;
+        System.out.println("The running time of the retrieval process is " + runtime/1000000 + " ms");
+
+        double averageRate = 0;
+        for (Record r : records) {
+            averageRate += r.getAverageRating();
+        }
+
+        averageRate /= records.size();
+
+        System.out.println("The average rating of the records where numVotes from 30000 - 40000 is " + averageRate);
+
+        startTime = System.nanoTime();
+        LinearScan ls = new LinearScan(disk.doBlockRetrieval());
+        records = ls.doLinearScanRange(30000,40000);
+        runtime = System.nanoTime() - startTime;
+        System.out.println("The running time of the retrieval process (brute-force linear scan method) is " + runtime/1000000 + " ms");
+
+        averageRate = 0;
+        for (Record r : records) {
+            averageRate += r.getAverageRating();
+        }
+
+        averageRate /= records.size(); //total rating divide by the size of the arraylist to get the average
+
+        System.out.println("The average rating of the records where numVotes from 30000 - 40000 using (brute-force linear scan method) is " + averageRate + "\n");
+
 
     }
 

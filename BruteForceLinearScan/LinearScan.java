@@ -48,6 +48,31 @@ public class LinearScan {
 
     }
 
+    public ArrayList<Record> doLinearScanRange(int low, int high) {
+
+        System.out.println("\nBrute-force Range Linear Scan");
+        System.out.println("------------------------------------------------------------------");
+
+        int blockAccess = 0;
+        ArrayList<Record> recordList = new ArrayList<>();
+
+        for (Block b: dataBlockList) {
+            blockAccess++;
+            Record[] records = b.doAllRecordRetrieval();
+
+            for (Record r: records) {
+                if (r != null && r.getNumVotes() >= low && r.getNumVotes() <=high) {
+                    recordList.add(r);
+                }
+
+            }
+        }
+        System.out.printf("Total no of data block accesses (brute-force linear scan method): %d\n", blockAccess);
+
+        return recordList;
+
+    }
+
     public void doLinearScanDeletion(int key, Disk disk) {
 
         System.out.println("\nBrute-force Linear Scan");
