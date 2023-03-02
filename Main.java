@@ -71,7 +71,7 @@ public class Main implements Config {
 
     /**
      doBlockCreation(int blkSize): Creates a disk and a B+ tree.
-     A disk variable is created to allocate disk space and a BpTree variable is crated to create a BPlusTree.
+     A disk variable is created to allocate disk space and a BpTree variable is created to create a BPlusTree.
      It reads data from a tsv file using the doRecordReading(), then inserts the data into the disk
      using doRecordAppend() and retrieves the addresses of the records.
      doBPTreeInsertion() is called to insert the records into the B+ tree based on their "numVotes" attribute.
@@ -148,18 +148,12 @@ public class Main implements Config {
     }
 
     public void runExperiment5() {
-        //For now,we are kinda of deleting the records for each block but then ah the block are considered deleted
-        //after each record deletion
+        System.out.println("\nRunning Experiment 5...");
         disk.doRecordDeletion(BpTree.doKeyRemoval(1000));
         runExperiment2();
 
         LinearScan ls = new LinearScan();
         ls.doLinearScanDeletion(1000,disk);
-        try {
-            doBlockCreation(BLOCK_SIZE_200);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
 
     }
 

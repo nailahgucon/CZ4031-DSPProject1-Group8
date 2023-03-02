@@ -41,7 +41,7 @@ public class Node {
      If the key is larger than the middle element:
         the search interval is updated to the right half of the middle element.
      If the key is equal to the middle element:
-        the index of the first occurrence of the key is recorded, the left most key will be taken (if have duplicates)
+        the index of the first occurrence of the key is recorded
      */
     public int setKey(int key){
         if (keys.size() == 0) {

@@ -11,6 +11,8 @@ public class Disk {
     int maxBlkSize;
     int blkSize;
     int blkCounts;
+
+    int blkAccess;
     ArrayList<Block> blkList;
     int countOfRecords;
 
@@ -111,6 +113,7 @@ public class Disk {
                 // will only return true if the block is empty
                 boolean result = block.doRecordDeletionAt(address.offset);
                 countOfRecords--;
+                blkAccess++;
                 if(result){
                     blkCounts--;
                 }
@@ -129,7 +132,7 @@ public class Disk {
      a blockAccessed array list is created to keep track of which address has already been accessed.
 
      For each address in the list, it checks if the corresponding block has already been accessed.
-     if the corresponding block has NOT been accessed and blkAccess count is less than 5:
+     if the corresponding block has NOT been accessed:
         Add blkID to the blockAccessed list.
         Retrieve a block from blkList using the blkId.
         Retrieve an array of records from data array.
@@ -144,7 +147,7 @@ public class Disk {
 
         try {
             for (Address address : addressList) {
-                if(!blockAccessed.contains(address.blkId) && blkAccess < 5){
+                if(!blockAccessed.contains(address.blkId)){
                     blockAccessed.add(address.blkId);
                     Block block = this.blkList.get(address.blkId);
                     Record records[] = block.data;
@@ -157,8 +160,8 @@ public class Disk {
         }
         return recordList;
     }
-    public int getCurrentBlkCounts() {
-        return blkCounts;
+    public int getCurrentBlkAccess() {
+        return blkAccess;
     }
     public void showDetails(){
         System.out.println("Num of records: " + countOfRecords);
