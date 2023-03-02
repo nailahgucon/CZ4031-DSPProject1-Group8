@@ -6,8 +6,6 @@ import Storage.Disk;
 import Storage.Record;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class LinearScan {
 
@@ -19,9 +17,6 @@ public class LinearScan {
     public LinearScan(ArrayList<Block> blkList) {
         this.dataBlockList = blkList;
     }
-//    public Record doRecordFetch(Address address) {
-//        return dataBlockList.get(address.getBlkId()).
-//    }
 
     public ArrayList<Record> doLinearScan(int key) {
 
@@ -79,9 +74,8 @@ public class LinearScan {
         System.out.println("------------------------------------------------------------------");
 
         int blockAccess = 0;
-        int blkdeleted = 0;
         ArrayList<Address> addressList = new ArrayList<>();
-//        ArrayList<Record> recordList = new ArrayList<>();
+
         int flag = 0;
         int blkid = 0;
         for (Block b: disk.doBlockRetrieval()) {
@@ -92,32 +86,18 @@ public class LinearScan {
 
             for (Record r: records) {
                 if (r != null && r.getNumVotes() == key) {
-                    flag = 1;
-//                    System.out.println(r.getNumVotes());
-//                    System.out.println(key);
                     Address add = new Address(blkid,count);
                     addressList.add(add);
 
                 }
                 count++;
             }
-            if (flag == 1){
-                blkdeleted++;
-            }
-            flag = 0;
             blkid++;
         }
 
-//        System.out.println(addressList.get(0).getBlkId());
-//        Address add = new Address(2382,0);
-//        Address add = new Address(2382,0);
-//        System.out.println(disk.doRecordFetch(addressList.get(0)).getNumVotes());
         disk.doRecordDeletion(addressList);
-        int originalDataBlocks = blockAccess;
-        int afterDeletionBlocks = disk.getCurrentBlkCounts();
         System.out.printf("Total no of data block accesses (brute-force linear scan method): %d\n", blockAccess);
-        System.out.printf("Total no of data block accessed to delete a record (brute-force linear scan method): %d\n", (originalDataBlocks - afterDeletionBlocks));
-//        return recordList;
+        System.out.printf("Total no of data block accessed to delete a record (brute-force linear scan method): %d\n", disk.getCurrentBlkAccess());
 
     }
 

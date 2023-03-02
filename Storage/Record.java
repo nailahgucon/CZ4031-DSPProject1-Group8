@@ -39,9 +39,9 @@ public class Record {
     }
 
     /**
-     * Assumptions made:
-     * The records will be stored as fixed format with fixed length, hence:
-     * tconst is fixed with 10 chars: 20B (each char is 2B in Java), averageRating is float: 4B, numVote is int: 4B
+    Assumptions made:
+    The records will be stored as fixed format with fixed length, hence:
+    tconst is fixed with 10 chars: 20B (each char is 2B in Java), averageRating is float: 4B, numVote is int: 4B
      */
     public static int size(){
         return 28;

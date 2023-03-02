@@ -31,7 +31,18 @@ public class Node {
         return keys.get(i);
     }
 
-    //set the key of the node
+     /**
+     setKey(int key): A binary search algorithm that repeatedly divides the search interval in half until the key is
+     found or the search interval is empty. In each iteration, the algorithm compares the key to the middle element
+     of the search interval and updates the interval accordingly.
+
+     If the key is smaller than the middle element:
+        the search interval is updated to the left half of the middle element.
+     If the key is larger than the middle element:
+        the search interval is updated to the right half of the middle element.
+     If the key is equal to the middle element:
+        the index of the first occurrence of the key is recorded
+     */
     public int setKey(int key){
         if (keys.size() == 0) {
             keys.add(key);
@@ -43,8 +54,6 @@ public class Node {
         int high = keys.size() - 1;
         int index = -1;
 
-        // Finds the index position of the key
-        // If there are duplicate keys, then the left most key will be taken
         while (low <= high) {
             // Divides by 2
             int mid = (low + high) >>> 1;
@@ -87,12 +96,23 @@ public class Node {
         keys = new ArrayList<>();
     }
 
-    //find the smallest key of the node
+     /**
+     doSmallestKeyRetrieval(): Retrieves the smallest key from a B+ tree.
+
+     If the node is a leaf node:
+        the smallest key will be the first key in the node. In this case, the method retrieves the first key
+        of the current node and returns it as the smallest key.
+     If the node is an internal node (non-leaf node):
+        Traverse down the tree to the left-most child of the tree until it reaches a leaf node.
+        This is achieved by checking if the left-most child of the current node is a leaf node.
+        If it is not a leaf node, the method continues traversing down the tree by assigning the left-most
+        child of the current node as the new current node. Once the method reaches a leaf node, it retrieves
+        the first key of the left-most child of the current node and returns it as the smallest key.
+     */
     public int doSmallestKeyRetrieval(){
         int smallestKey;
         InternalNode intNode;
 
-        //if is a leaf, the smallest key will be the first key in the node
         if (isLeafNode){
             smallestKey = this.getKey(0);
         }
@@ -100,7 +120,6 @@ public class Node {
 
             intNode = (InternalNode) this;
 
-            // When leaf node is not reached, continue searching until you are the parent node of a leaf node
             while (!intNode.getChildNode(0).getIsLeafNode()){
                 intNode = (InternalNode) intNode.getChildNode(0);
             }
@@ -109,26 +128,38 @@ public class Node {
         return smallestKey;
     }
 
-    //delete the node
+    /**
+    doNodeDeletion(): deletes a node from a B+ tree.
+
+    If the node has an internal node:
+        Deletes itself and sets the internal node as null by calling the doChildNodeDeletion() method
+        of the internal node and passing itself as a parameter. After the deletion, the internal node
+        of the node is set to null.
+    If the node IS a leaf node:
+        Casts itself as a LeafNode and calls the deleteAddresses() method of the LeafNode object
+        to delete all the addresses. Then, it sets the next node of the LeafNode object to null.
+    If the node IS an internal node:
+        Casts itself as an InternalNode and calls the doAllChildNodesDeletion() method of the InternalNode
+        object to delete all its child nodes.
+
+    After the deletion of the node and its descendants, the method resets the node to its original state.
+    Sets the isRootNode and isLeafNode flags to true and initializing the keys list to a new empty list.
+    */
     public void doNodeDeletion(){
-        //if it has a internalNode, delete yourself and set your internalNode as null
         if (internalNode != null){
             internalNode.doChildNodeDeletion(this);
             internalNode = null;
         }
-        // if yourself is a leaf node
         if (isLeafNode){
             LeafNode leafNode = (LeafNode) this;
-            leafNode.deleteAddresses(); //delete all the addresses
-            leafNode.setNextNode(null); //set your next leaf as null
+            leafNode.deleteAddresses();
+            leafNode.setNextNode(null);
         }
-        // if yourself is an internal node
         else{
             InternalNode intNode = (InternalNode) this;
             intNode.doAllChildNodesDeletion();
         }
 
-        //resets the node to the original state
         isRootNode = true;
         isLeafNode = true;
         keys = new ArrayList<>();
