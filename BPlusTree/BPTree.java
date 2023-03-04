@@ -722,8 +722,6 @@ public class BPTree {
         Node curr = root;
         InternalNode internalNode;
 
-//        System.out.printf("access root and nodes accesses: %d, contents of the root node: %s\n", nodeCount, this.root.getKeys().toString());
-
 
         while (!curr.getIsLeafNode()) {
             internalNode = (InternalNode) curr;
@@ -732,12 +730,6 @@ public class BPTree {
                 if (low <= internalNode.getKey(i)) {
                     curr = internalNode.getChildNode(i);
                     blockAccess++;
-//                    if (nodeCount <= 5) {
-//                        System.out.printf("Go to child node [%d], current key [%d], searching key [%d] node accessed: %d \n", i, internalNode.getKey(i), low, nodeCount);
-//                        System.out.printf("Content of the index node: %s\n", curr.getKeys().toString());
-//
-//                    }
-
                     break;
                 }
 
@@ -745,12 +737,6 @@ public class BPTree {
 
                     curr = internalNode.getChildNode(i + 1);
                     blockAccess++;
-
-//                    if (nodeCount <= 5) {
-//                        System.out.printf("Go to child node [%d], current key [%d], searching key [%d] node accessed: %d \n", i, internalNode.getKey(i), low, nodeCount);
-////                        System.out.printf("Content of the index node: %s\n", curr.getKeys().toString());
-//
-//                    }
 
                     break;
                 }
@@ -761,17 +747,10 @@ public class BPTree {
         LeafNode curLeaf = (LeafNode) curr;
         boolean found = false;
         while (!found && curLeaf != null) {
-            // finding same keys within leaf node
-//            if (nodeCount <= 5) {
-//                nodeCount++;
-//                System.out.printf("Content of the leaf node: %s, node accessed: %s\n", curLeaf.getNextNode().getKeys().toString(), nodeCount);
-//
-//            }
             for (int i = 0; i < curLeaf.getKeys().size(); i++) {
                 // found same key, add into result list
                 if (curLeaf.getKey(i) >= low && curLeaf.getKey(i) <= high) {
                     result.add(curLeaf.getAddress(i));
-//                    System.out.printf("Key: %s, NV: %d\n", curLeaf.getKeys().toString(), nodeCount);
                     continue;
                 }
                 // if curKey > searching key, no need to continue searching
@@ -793,7 +772,6 @@ public class BPTree {
 
         //this 2 need
         System.out.printf("Searching numOfVotes range of %d - %d, the No of records accessed: %d\n", low, high, result.size());
-//        System.out.printf("Total No of nodes accesses: %d, total No of block accesses: %d\n", nodeCount, result.size() + nodeCount);
         System.out.printf("Total no of index nodes accesses: %d\n", blockAccess);
         System.out.printf("Total no of data block accesses: %d\n", result.size() + blockAccess);
         return result;
