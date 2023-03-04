@@ -715,95 +715,9 @@ public class BPTree {
      Returns the result array list containing the addresses that meet the query criteria.
     */
      // Code for Experiment 4
-    public ArrayList<Address> doRangeRecordsRetrieval(int low, int high) {
-        ArrayList<Address> result = new ArrayList<>();
-        int nodeCount = 1;
-        int siblingCount = 0;
-
-        Node curr = root;
-        InternalNode internalNode;
-
-        System.out.printf("access root and nodes accesses: %d, contents of the root node: %s\n", nodeCount, this.root.getKeys().toString());
-
-
-        while (!curr.getIsLeafNode()) {
-            internalNode = (InternalNode) curr;
-            int no_of_keys = internalNode.getKeys().size();
-            for (int i = 0; i < no_of_keys; i++) {
-                if (low <= internalNode.getKey(i)) {
-                    curr = internalNode.getChildNode(i);
-                    nodeCount++;
-                    if (nodeCount <= 5) {
-                        System.out.printf("Go to child node [%d], current key [%d], searching key [%d] node accessed: %d \n", i, internalNode.getKey(i), low, nodeCount);
-                        System.out.printf("Content of the index node: %s\n", curr.getKeys().toString());
-
-                    }
-
-                    break;
-                }
-
-                if (i == no_of_keys - 1) {
-
-                    curr = internalNode.getChildNode(i + 1);
-                    nodeCount++;
-
-                    if (nodeCount <= 5) {
-                        System.out.printf("Go to child node [%d], current key [%d], searching key [%d] node accessed: %d \n", i, internalNode.getKey(i), low, nodeCount);
-                        System.out.printf("Content of the index node: %s\n", curr.getKeys().toString());
-
-                    }
-
-                    break;
-                }
-            }
-        }
-
-        // after leaf node is found, find all records with same key
-        LeafNode curLeaf = (LeafNode) curr;
-        boolean found = false;
-        while (!found && curLeaf != null) {
-            // finding same keys within leaf node
-            if (nodeCount <= 5) {
-                nodeCount++;
-                System.out.printf("Content of the leaf node: %s, node accessed: %s\n", curLeaf.getNextNode().getKeys().toString(), nodeCount);
-
-            }
-            for (int i = 0; i < curLeaf.getKeys().size(); i++) {
-                // found same key, add into result list
-                if (curLeaf.getKey(i) >= low && curLeaf.getKey(i) <= high) {
-                    result.add(curLeaf.getAddress(i));
-                    continue;
-                }
-                // if curKey > searching key, no need to continue searching
-                if (curLeaf.getKey(i) > high) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                // trying to check sibling node has remaining records of same key
-                if (curLeaf.getNextNode() != null) {
-                    curLeaf = (LeafNode) curLeaf.getNextNode();
-                    nodeCount++;
-                    siblingCount++;
-                } else {
-                    break;
-                }
-            }
-        }
-        if (siblingCount > 0) {
-
-            System.out.printf("the No of nodes accesses in siblings: %d \n", siblingCount);
-
-        }
-
-        System.out.printf("Searching numOfVotes range of %d - %d, the No of records accessed: %d\n", low, high, result.size());
-        System.out.printf("Total No of nodes accesses: %d, total No of block accesses: %d\n", nodeCount, result.size() + nodeCount);
-        return result;
-    }
     public ArrayList<Address> doRangeRecordsRetrieval1(int low, int high) {
         ArrayList<Address> result = new ArrayList<>();
-        int nodeCount = 1;
+        int blockAccess = 1;
 
         Node curr = root;
         InternalNode internalNode;
@@ -817,7 +731,7 @@ public class BPTree {
             for (int i = 0; i < no_of_keys; i++) {
                 if (low <= internalNode.getKey(i)) {
                     curr = internalNode.getChildNode(i);
-                    nodeCount++;
+                    blockAccess++;
 //                    if (nodeCount <= 5) {
 //                        System.out.printf("Go to child node [%d], current key [%d], searching key [%d] node accessed: %d \n", i, internalNode.getKey(i), low, nodeCount);
 //                        System.out.printf("Content of the index node: %s\n", curr.getKeys().toString());
@@ -830,7 +744,7 @@ public class BPTree {
                 if (i == no_of_keys - 1) {
 
                     curr = internalNode.getChildNode(i + 1);
-                    nodeCount++;
+                    blockAccess++;
 
 //                    if (nodeCount <= 5) {
 //                        System.out.printf("Go to child node [%d], current key [%d], searching key [%d] node accessed: %d \n", i, internalNode.getKey(i), low, nodeCount);
@@ -870,7 +784,7 @@ public class BPTree {
                 // trying to check sibling node has remaining records of same key
                 if (curLeaf.getNextNode() != null) {
                     curLeaf = (LeafNode) curLeaf.getNextNode();
-                    nodeCount++;
+                    blockAccess++;
                 } else {
                     break;
                 }
@@ -880,8 +794,8 @@ public class BPTree {
         //this 2 need
         System.out.printf("Searching numOfVotes range of %d - %d, the No of records accessed: %d\n", low, high, result.size());
 //        System.out.printf("Total No of nodes accesses: %d, total No of block accesses: %d\n", nodeCount, result.size() + nodeCount);
-        System.out.printf("Total no of index nodes accesses: %d\n", nodeCount);
-        System.out.printf("Total no of data block accesses: %d\n", result.size() + nodeCount);
+        System.out.printf("Total no of index nodes accesses: %d\n", blockAccess);
+        System.out.printf("Total no of data block accesses: %d\n", result.size() + blockAccess);
         return result;
     }
 

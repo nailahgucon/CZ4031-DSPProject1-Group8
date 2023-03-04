@@ -145,7 +145,6 @@ public class Main implements Config {
 
     public void runExperiment4() {
         System.out.println("\nRunning Experiment 4...");
-        //        System.out.println(BpTree.doRangeRecordsRetrieval(30000,40000));
 
         long startTime = System.nanoTime();
         ArrayList<Address> dataAddress = BpTree.doRangeRecordsRetrieval1(30000,40000);
@@ -183,12 +182,19 @@ public class Main implements Config {
 
     public void runExperiment5() {
         System.out.println("\nRunning Experiment 5...");
+        System.out.println("B+ tree");
+        System.out.println("------------------------------------------------------------------");
+        long startTime = System.nanoTime();
         disk.doRecordDeletion(BpTree.doKeyRemoval(1000));
-        runExperiment2();
+        long runtime = System.nanoTime() - startTime;
+        System.out.println("The running time of the deletion process is " + runtime/1000000 + " ms");
+        BpTree.showExperiment2();
 
+        startTime = System.nanoTime();
         LinearScan ls = new LinearScan();
         ls.doLinearScanDeletion(1000,disk);
-
+        runtime = System.nanoTime() - startTime;
+        System.out.println("The running time of the deletion process is (brute-force linear scan method) " + runtime/1000000 + " ms");
     }
 
 
