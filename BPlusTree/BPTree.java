@@ -182,7 +182,7 @@ public class BPTree {
            If the old leaf node was NOT the root node & has NO space for the new leaf node:
                 doParentSeparation(InternalNode parentNode, Node childNode) is called to do a node separation operation
                 to create a new parent node (split similarly to the leaf node)
-        8) NodeCount is incremented to reflect the addition of the new nodes.
+        8) noOfNodes is incremented to reflect the addition of the new nodes.
      */
     public void doLeafNodeSeparation(LeafNode prevLeaf, int key, Address address) {
         // (1)
@@ -683,7 +683,7 @@ public class BPTree {
             }
         }
         if (isPrint) {
-            System.out.println("Searching numOfVotes = " + searchingKey + " the No of records accessed = " + result.size());
+            System.out.println();
             System.out.println("B+ tree");
             System.out.println("------------------------------------------------------------------");
             System.out.printf("Total no of index nodes accesses: %d\n", blockAccess);
@@ -703,7 +703,7 @@ public class BPTree {
      In the while loop:
         Traverse down the tree from the root node until it reaches a leaf node.
         During the traversal, it checks each internal node's keys to determine which child node to move to next based
-        on the range being queried. It also increments the nodeCount for each node visited.
+        on the range being queried. It also increments the blockAccess for each node visited.
      If leaf node is found:
         Loops through its keys to check which addresses fall within the specified range.
         If a matching address is found:
@@ -770,8 +770,9 @@ public class BPTree {
             }
         }
 
-        //this 2 need
-        System.out.printf("Searching numOfVotes range of %d - %d, the No of records accessed: %d\n", low, high, result.size());
+        System.out.println();
+        System.out.println("B+ tree");
+        System.out.println("------------------------------------------------------------------");
         System.out.printf("Total no of index nodes accesses: %d\n", blockAccess);
         System.out.printf("Total no of data block accesses: %d\n", result.size() + blockAccess);
         return result;

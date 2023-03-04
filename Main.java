@@ -182,6 +182,7 @@ public class Main implements Config {
 
     public void runExperiment5() {
         System.out.println("\nRunning Experiment 5...");
+        System.out.println();
         System.out.println("B+ tree");
         System.out.println("------------------------------------------------------------------");
         long startTime = System.nanoTime();
