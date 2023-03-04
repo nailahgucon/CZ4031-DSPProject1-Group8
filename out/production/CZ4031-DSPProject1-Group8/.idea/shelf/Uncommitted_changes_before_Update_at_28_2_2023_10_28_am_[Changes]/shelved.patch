@@ -1,0 +1,209 @@
+Index: BPlusTree/BPTree.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package BPlusTree;\r\n\r\nimport Storage.Address;\r\nimport Storage.Record;\r\n\r\nimport java.util.ArrayList;\r\n\r\npublic class BPTree {\r\n    // Pointer size is 6 because 64 bits used for addressing ------> 2^6 = 64\r\n    private static final int POINTER_SIZE = 6;\r\n    // For numVotes\r\n    private static final int KEY_SIZE = 4;\r\n    Node root;\r\n    int noOfLevels;\r\n    int noOfNodes;\r\n    int noOfNodesDeleted;\r\n    int maxNoOfKeys;\r\n    int minNoOfInternalKeys;\r\n    int minNoOfLeafKeys;\r\n\r\n    public BPTree(int sizeOfBlock) {\r\n        //n\r\n        maxNoOfKeys = (sizeOfBlock - POINTER_SIZE) / (POINTER_SIZE + KEY_SIZE);\r\n        minNoOfInternalKeys = (int) Math.floor(maxNoOfKeys / 2);\r\n        minNoOfLeafKeys = (int) Math.floor((maxNoOfKeys + 1) / 2);\r\n\r\n        root = createRoot();\r\n        noOfNodes = 0;\r\n        noOfNodesDeleted = 0;\r\n\r\n        System.out.println();\r\n        System.out.println(\"Doing Calculations...\");\r\n        System.out.println(\"Block Size: \" + sizeOfBlock + \"B\");\r\n        System.out.println(\"Max no. of keys in a node: \" + maxNoOfKeys);\r\n        System.out.println(\"Min no. of keys in an internal node: \" + minNoOfInternalKeys);\r\n        System.out.println(\"Min no. of keys in a leaf node: \" + minNoOfLeafKeys);\r\n        System.out.println();\r\n    }\r\n\r\n    // create initial root\r\n    public LeafNode createRoot() {\r\n        LeafNode initRoot = new LeafNode();\r\n        noOfLevels = 1;\r\n        noOfNodes = 1;\r\n        initRoot.setIsRootNode(true);\r\n        return initRoot;\r\n    }\r\n\r\n    public void doBPTreeInsertion(int key, Address address) {\r\n        this.doLeafNodeInsertion(this.doLeafNodeSearch(key), key, address);\r\n    }\r\n\r\n    public LeafNode doLeafNodeSearch(int key) {\r\n        if (this.root.getIsLeafNode())\r\n            return (LeafNode) root;\r\n\r\n        ArrayList<Integer> keys;\r\n        InternalNode internalNode = (InternalNode) root;\r\n\r\n        keys = internalNode.getKeys();\r\n        int i;\r\n\r\n        for (i = 0; i < keys.size(); i++) {\r\n            if (key < keys.get(i)) {\r\n                break;\r\n            }\r\n        }\r\n\r\n        Node child = internalNode.getChildNode(i);\r\n        if (child.getIsLeafNode()) {\r\n            return (LeafNode) child;\r\n        } else {\r\n            return doLeafNodeSearch((InternalNode) child, key);\r\n        }\r\n\r\n    }\r\n\r\n    public LeafNode doLeafNodeSearch(InternalNode internalNode, int key) {\r\n        ArrayList<Integer> keys = internalNode.getKeys();\r\n        int i;\r\n\r\n        for (i = 0; i < keys.size(); i++) {\r\n            if (key < keys.get(i)) {\r\n                break;\r\n            }\r\n        }\r\n\r\n        Node child = internalNode.getChildNode(i);\r\n        if (child.getIsLeafNode()) {\r\n            return (LeafNode) child;\r\n        } else {\r\n            return doLeafNodeSearch((InternalNode) child, key);\r\n        }\r\n\r\n    }\r\n\r\n    public void doLeafNodeInsertion(LeafNode leafNode, int key, Address address) {\r\n        try {\r\n            if (leafNode.getKeys().size() >= maxNoOfKeys) {\r\n                doLeafNodeSeparation(leafNode, key, address);\r\n            } else {\r\n                leafNode.setAddress(key, address);\r\n            }\r\n        } catch (Error e) {\r\n            System.out.println(e.getMessage());\r\n        }\r\n\r\n    }\r\n\r\n    public void doLeafNodeSeparation(LeafNode prevLeaf, int key, Address address) {\r\n        //create local arrays for addresses and keys to store original + new key to insert\r\n        //this is why the size of both arrays are maxNoOfKeys+1\r\n        Address addresses[] = new Address[maxNoOfKeys + 1];\r\n        int keys[] = new int[maxNoOfKeys + 1];\r\n        //create a brand-new leaf node for separation\r\n        LeafNode newLeaf = new LeafNode();\r\n\r\n        //inserting old leaf's keys into the arrays that are created previously\r\n        int i;\r\n        for (i = 0; i < maxNoOfKeys; i++) {\r\n            keys[i] = prevLeaf.getKey(i);\r\n            addresses[i] = prevLeaf.getAddress(i);\r\n        }\r\n        /**\r\n         * compare from the tail of the keys, if key >= keys[i], put key to the right side\r\n         * else shift keys that are bigger than key to the back, then insert the key to the correct position\r\n         */\r\n        for (i = maxNoOfKeys - 1; i >= 0; i--) {\r\n\r\n            if (keys[i] <= key) {\r\n                i++;\r\n                keys[i] = key;\r\n                addresses[i] = address;\r\n                break;\r\n            }\r\n\r\n            keys[i + 1] = keys[i];\r\n            addresses[i + 1] = addresses[i];\r\n        }\r\n\r\n        //erasing values(keys and addresses) inside old leaf\r\n        prevLeaf.doSeparation();\r\n\r\n        //re-insert the latest keys and addresses from local array into the two leaf nodes\r\n        for (i = 0; i < minNoOfLeafKeys; i++)\r\n            prevLeaf.setAddress(keys[i], addresses[i]);\r\n        //continue to insert into new leaf\r\n        for (i = minNoOfLeafKeys; i < maxNoOfKeys + 1; i++)\r\n            newLeaf.setAddress(keys[i], addresses[i]);\r\n\r\n        //adjust the pointers of the leaf nodes\r\n        //set old leaf node to point to new leaf node\r\n        //set new leaf node to point to next leaf node\r\n        newLeaf.setNextNode(prevLeaf.getNextNode());\r\n        prevLeaf.setNextNode(newLeaf);\r\n\r\n        //setting parents for new leafnode\r\n        if (prevLeaf.getIsRootNode()) { //if the leaf node is the only node in the tree, and thus it is a root\r\n\r\n            InternalNode newRoot = new InternalNode(); //Every 2 nodes need a parent nodes, thus we need a new node\r\n            prevLeaf.setIsRootNode(false); // No longer a root node\r\n            newRoot.setIsRootNode(true); // New node become the root node\r\n            newRoot.doChildInsertion(prevLeaf); //Add left child\r\n            newRoot.doChildInsertion(newLeaf); //Add right child\r\n            root = newRoot;\r\n            noOfLevels++;\r\n        } else if (prevLeaf.getInternalNode().getKeys().size() < maxNoOfKeys) {\r\n            prevLeaf.getInternalNode().doChildInsertion(newLeaf);\r\n        } else\r\n            doParentSeparation(prevLeaf.getInternalNode(), newLeaf);\r\n\r\n        // updating nodeCount\r\n        noOfNodes++;\r\n    }\r\n\r\n    public void doParentSeparation(InternalNode parentNode, Node childNode) {\r\n\r\n        Node childNodes[] = new Node[maxNoOfKeys + 2];\r\n        int keys[] = new int[maxNoOfKeys + 2];\r\n        int key = childNode.doSmallestKeyRetrieval();\r\n        InternalNode parentNode2 = new InternalNode();\r\n\r\n        parentNode2.setIsRootNode(false);\r\n\r\n        // getting full and sorted lists of keys and children\r\n        for (int i = 0; i < maxNoOfKeys + 1; i++) {\r\n            childNodes[i] = parentNode.getChildNode(i);\r\n            keys[i] = childNodes[i].doSmallestKeyRetrieval();\r\n        }\r\n\r\n        for (int i = maxNoOfKeys; i >= 0; i--) {\r\n            if (keys[i] <= key) {\r\n                i++;\r\n                keys[i] = key;\r\n                childNodes[i] = childNode;\r\n                break;\r\n            }\r\n\r\n            keys[i + 1] = keys[i];\r\n            childNodes[i + 1] = childNodes[i];\r\n        }\r\n\r\n        //clearing old parent values\r\n        parentNode.doSeparation();\r\n\r\n        for (int i = 0; i < minNoOfInternalKeys + 2; i++)\r\n            parentNode.doChildInsertion(childNodes[i]);\r\n        for (int i = minNoOfInternalKeys + 2; i < maxNoOfKeys + 2; i++)\r\n            parentNode2.doChildInsertion(childNodes[i]);\r\n\r\n        //setting parent for the new parent node\r\n        if (parentNode.getIsRootNode()) {\r\n\r\n            InternalNode newRoot = new InternalNode();\r\n            parentNode.setIsRootNode(false);\r\n            newRoot.setIsRootNode(true);\r\n            newRoot.doChildInsertion(parentNode);\r\n            newRoot.doChildInsertion(parentNode2);\r\n            root = newRoot;\r\n            noOfLevels++;\r\n\r\n        } else if (parentNode.getInternalNode().getKeys().size() < maxNoOfKeys)\r\n            parentNode.getInternalNode().doChildInsertion(parentNode2);\r\n\r\n        else\r\n            doParentSeparation(parentNode.getInternalNode(), parentNode2);\r\n\r\n        // updating nodeCount\r\n        noOfNodes++;\r\n    }\r\n\r\n    public ArrayList<Address> doKeyRemoval(int key) {\r\n        ArrayList<Integer> keys;\r\n        LeafNode leafNode;\r\n        ArrayList<Address> addressList = new ArrayList<>();\r\n        ArrayList<Address> returnAddressListToDelete = doRecordsWithKeysRetrieval(key, false);\r\n        int length = doRecordsWithKeysRetrieval(key, false).size();\r\n        //Searching the records with the given key value\r\n        for (int j = 0; j < length; j++) {\r\n            leafNode = doLeafNodeSearch(key);\r\n            keys = leafNode.getKeys();\r\n            for (int i = 0; i < keys.size(); i++) {\r\n                if (keys.get(i) == key) {\r\n                    leafNode.deleteAddress(i);\r\n                    if (!leafNode.getIsRootNode()) {\r\n                        doLeafCleaning(leafNode);\r\n                        addressList.addAll(leafNode.getAddresses());\r\n                    }\r\n                    break;\r\n                }\r\n            }\r\n        }\r\n        System.out.println(\"No of nodes deleted: \" + noOfNodesDeleted);\r\n        noOfNodes -= noOfNodesDeleted;\r\n        return returnAddressListToDelete;\r\n    }\r\n\r\n    public void doLeafCleaning(LeafNode leafNode) {\r\n\r\n        //If no need to change node, reset parent and finish\r\n        if (leafNode.getKeys().size() >= minNoOfLeafKeys) {\r\n            doParentNodeCleaning(leafNode.getInternalNode());\r\n            return;\r\n        }\r\n\r\n        //No of keys required since current size is less than minimum No of key (Floor of (N + 1)/2)\r\n        int required = minNoOfLeafKeys - leafNode.getKeys().size();\r\n        int leftExcess = 0;\r\n        int rightExcess = 0;\r\n        LeafNode left = (LeafNode) leafNode.getInternalNode().getLeftSiblingNode(leafNode);\r\n        LeafNode right = (LeafNode) leafNode.getInternalNode().getRightSiblingNode(leafNode);\r\n        InternalNode copy;\r\n\r\n        //Getting the extra No of keys left/right node can give\r\n        if (left != null) leftExcess += left.getKeys().size() - minNoOfLeafKeys;\r\n        if (right != null) rightExcess += right.getKeys().size() - minNoOfLeafKeys;\r\n\r\n        //If it is possible to borrow from neighbouring nodes\r\n        if (leftExcess + rightExcess >= required) {\r\n            if (left != null) {\r\n                leafNode.setAddress(left.getKey(left.getKeys().size() - 1), left.getAddress(left.getKeys().size() - 1));\r\n                left.deleteAddress(left.getKeys().size() - 1);\r\n            } else {\r\n                leafNode.setAddress(right.getKey(0), right.getAddress(0));\r\n                right.deleteAddress(0);\r\n            }\r\n\r\n            copy = leafNode.getInternalNode();\r\n        }\r\n\r\n        //A merge is required as we are unable to borrow from neighbouring nodes\r\n        else {\r\n            if (left != null) {\r\n                for (int i = 0; i < leafNode.getKeys().size(); i++) {\r\n                    left.setAddress(leafNode.getKey(i), leafNode.getAddress(i));\r\n                }\r\n            } else {\r\n                for (int i = 0; i < leafNode.getKeys().size(); i++) {\r\n                    right.setAddress(leafNode.getKey(i), leafNode.getAddress(i));\r\n                }\r\n            }\r\n\r\n            //This is for resetting the parent after deleting\r\n            copy = leafNode.getInternalNode();\r\n\r\n            if (left == null) {\r\n                if (!copy.getIsRootNode()) {\r\n                    left = doLeafNodeSearch(copy.doSmallestKeyRetrieval() - 1);\r\n                }\r\n            }\r\n\r\n            //Pointer will be changed to the right node\r\n            left.setNextNode(leafNode.getNextNode());\r\n\r\n            leafNode.doNodeDeletion();\r\n            noOfNodesDeleted++;\r\n        }\r\n\r\n        //Updating the parent\r\n        doParentNodeCleaning(copy);\r\n    }\r\n\r\n    public void doParentNodeCleaning(InternalNode parent) {\r\n        if (parent.getIsRootNode()) {\r\n\r\n            // if root has at least 2 children, reset and return\r\n            if (parent.getChildNodes().size() > 1) {\r\n\r\n                //resetting the parent\r\n                Node child = parent.getChildNode(0);\r\n                parent.doChildNodeDeletion(child);\r\n                parent.doChildInsertion(child); //will find the smallest key in the parent after adding back, which will update the parent\r\n                return;\r\n            }\r\n\r\n            // if root has only 1 child, delete root level\r\n            else {\r\n\r\n                //setting the only child as root\r\n                root = parent.getChildNode(0);\r\n                parent.getChildNode(0).setIsRootNode(true);\r\n\r\n                parent.doNodeDeletion();\r\n                noOfNodesDeleted++;\r\n                noOfLevels--;\r\n                return;\r\n            }\r\n        }\r\n\r\n        int required = minNoOfInternalKeys - parent.getKeys().size();\r\n        int leftExcess = 0;\r\n        int rightExcess = 0;\r\n\r\n        InternalNode leftSiblingNode = (InternalNode) parent.getInternalNode().getLeftSiblingNode(parent);\r\n        InternalNode rightSiblingNode = (InternalNode) parent.getInternalNode().getRightSiblingNode(parent);\r\n        InternalNode duplicate;\r\n\r\n        if (leftSiblingNode != null)\r\n            leftExcess += leftSiblingNode.getKeys().size() - minNoOfInternalKeys;\r\n\r\n        if (rightSiblingNode != null)\r\n            rightExcess += rightSiblingNode.getKeys().size() - minNoOfInternalKeys;\r\n\r\n        //If there are extras from the left or right, then we borrow\r\n        if (required <= leftExcess + rightExcess) {\r\n            if (leftSiblingNode != null) {\r\n                for (int i = 0; i < required; i++) {\r\n                    parent.insertChildToFront(leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));\r\n                    leftSiblingNode.doChildNodeDeletion(leftSiblingNode.getChildNode(leftSiblingNode.getChildNodes().size() - 1));\r\n                }\r\n\r\n            } else {\r\n                for (int i = 0; i < required; i++) {\r\n                    parent.doChildInsertion(rightSiblingNode.getChildNode(0));\r\n                    rightSiblingNode.doChildNodeDeletion(rightSiblingNode.getChildNode(0));\r\n                }\r\n            }\r\n            duplicate = parent.getInternalNode();\r\n        }\r\n        //There are insufficient extra keys for borrowing, we merge.\r\n        else {\r\n            // If there is vacancy for right node\r\n            if (leftSiblingNode == null) {\r\n                for (int i = 0; i < parent.getChildNodes().size(); i++) {\r\n                    rightSiblingNode.doChildInsertion(parent.getChildNode(i));\r\n                }\r\n            }\r\n\r\n            // If there is vacancy for left node\r\n            else {\r\n                for (int i = 0; i < parent.getChildNodes().size(); i++) {\r\n                    leftSiblingNode.doChildInsertion(parent.getChildNode(i));\r\n                }\r\n            }\r\n\r\n            // After merging, we delete the node\r\n            duplicate = parent.getInternalNode();\r\n            parent.doNodeDeletion();\r\n            noOfNodesDeleted++;\r\n        }\r\n        doParentNodeCleaning(duplicate);\r\n    }\r\n\r\n\r\n    // Code for Experiment 2\r\n    public void showExperiment2() {\r\n\r\n        System.out.println(\"The parameter n of the B+ tree: \" + this.maxNoOfKeys);\r\n        System.out.println(\"The No of nodes of the B+ tree: \" + this.noOfNodes);\r\n        System.out.println(\"The No of levels of the B+ tree: \" + this.noOfLevels);\r\n        System.out.println(\"The content of the root node (only the keys): \");\r\n        InternalNode rootDuplicate = (InternalNode) root; //to get the root node\r\n        System.out.println(rootDuplicate.getKeys().toString());\r\n    }\r\n\r\n    public ArrayList<Address> showExperiment3(int searchingKey) {\r\n        return doRecordsWithKeysRetrieval(searchingKey, true);\r\n    }\r\n\r\n    private ArrayList<Address> doRecordsWithKeysRetrieval(int searchingKey, boolean isPrint) {\r\n        ArrayList<Address> result = new ArrayList<>();\r\n        int blockAccess = 1; // access the root\r\n        int siblingAccess = 0;\r\n        ArrayList<Address> recordsAddressList = new ArrayList<>();\r\n\r\n        if (isPrint) {\r\n            System.out.printf(\"access root and nodes accesses: %d, contents of the root node: %s\\n\", blockAccess, this.root.getKeys().toString());\r\n        }\r\n        Node currNode = root;\r\n        InternalNode internalNode;\r\n        // searching for leaf node with key\r\n        while (!currNode.getIsLeafNode()) { //the mount of node access we need to reach to leaf node\r\n            internalNode = (InternalNode) currNode;\r\n            for (int i = 0; i < internalNode.getKeys().size(); i++) {\r\n                if (searchingKey <= internalNode.getKey(i)) {\r\n                    currNode = internalNode.getChildNode(i); //look deeper into bottom left (smallest) child\r\n                    blockAccess++;\r\n                    if (isPrint && blockAccess <= 5) { //to prevent terminal output when deleting nodes\r\n                        System.out.printf(\"Go to child node [%d], current key [%d], searching key [%d] node accessed: %d\\n\", i, internalNode.getKey(i), searchingKey, blockAccess);\r\n                        System.out.printf(\"Content of the index node: %s\\n\", currNode.getKeys().toString());\r\n                    }\r\n                    break;\r\n                }\r\n                if (i == internalNode.getKeys().size() - 1) { //if no smaller key can be found, mean look at the right child node\r\n                    currNode = internalNode.getChildNode(i + 1);\r\n                    blockAccess++;\r\n                    if (isPrint && blockAccess <= 5) {\r\n                        System.out.printf(\"Go to child node [%d], current key [%d], searching key [%d] node accessed: %d\\n\", i, internalNode.getKey(i), searchingKey, blockAccess);\r\n                        System.out.printf(\"Content of the index node: %s\\n\", currNode.getKeys().toString());\r\n                    }\r\n\r\n                    break;\r\n                }\r\n            }\r\n        }\r\n        // after leaf node is found, find all records with same key\r\n        LeafNode curr = (LeafNode) currNode;\r\n        boolean finish = false;\r\n        while (!finish && curr != null) {\r\n            // finding same keys within leaf node\r\n            if (isPrint && blockAccess <= 5) {\r\n                blockAccess++;\r\n                System.out.printf(\"Content of the leaf node: %s, node accessed: %s\\n\", curr.getKeys().toString(), blockAccess);\r\n            }\r\n\r\n            for (int i = 0; i < curr.getKeys().size(); i++) {\r\n                // found same key, add into result list\r\n                if (curr.getKey(i) == searchingKey) {\r\n                    result.add(curr.getAddress(i));\r\n                    continue;\r\n                }\r\n                // if curKey > searching key, no need to continue searching\r\n                if (curr.getKey(i) > searchingKey) {\r\n                    finish = true;\r\n                    break;\r\n                }\r\n            }\r\n            if (!finish) {\r\n                // trying to check sibling node has remaining records of same key\r\n                if (curr.getNextNode() != null) {\r\n                    curr = curr.getNextNode();\r\n                    blockAccess++;\r\n                    siblingAccess++;\r\n                } else {\r\n                    break;\r\n                }\r\n            }\r\n        }\r\n        if (isPrint) {\r\n            if (siblingAccess > 0) {\r\n                System.out.println(\"the No of nodes accesses in siblings: \" + siblingAccess);\r\n            }\r\n            System.out.println(\"Searching numOfVotes = \" + searchingKey + \" the No of records accessed = \" + result.size());\r\n            System.out.printf(\"Total No of nodes accesses: %d, total No of block accesses: %d\\n\", blockAccess, result.size() + blockAccess);\r\n        }\r\n\r\n\r\n        return result;\r\n    }\r\n\r\n    //Experiment 4\r\n    public ArrayList<Address> doRangeRecordsRetrieval(int low, int high) {\r\n        ArrayList<Address> result = new ArrayList<>();\r\n        int nodeCount = 1;\r\n        int siblingCount = 0;\r\n\r\n        Node curr = root;\r\n        InternalNode internalNode;\r\n\r\n        System.out.printf(\"access root and nodes accesses: %d, contents of the root node: %s\\n\", nodeCount, this.root.getKeys().toString());\r\n\r\n\r\n        while (!curr.getIsLeafNode()) {\r\n            internalNode = (InternalNode) curr;\r\n            int no_of_keys = internalNode.getKeys().size();\r\n            for (int i = 0; i < no_of_keys; i++) {\r\n                if (low <= internalNode.getKey(i)) {\r\n                    curr = internalNode.getChildNode(i);\r\n                    nodeCount++;\r\n                    if (nodeCount <= 5) {\r\n                        System.out.printf(\"Go to child node [%d], current key [%d], searching key [%d] node accessed: %d \\n\", i, internalNode.getKey(i), low, nodeCount);\r\n                        System.out.printf(\"Content of the index node: %s\\n\", curr.getKeys().toString());\r\n\r\n                    }\r\n\r\n                    break;\r\n                }\r\n\r\n                if (i == no_of_keys - 1) {\r\n\r\n                    curr = internalNode.getChildNode(i + 1);\r\n                    nodeCount++;\r\n\r\n                    if (nodeCount <= 5) {\r\n                        System.out.printf(\"Go to child node [%d], current key [%d], searching key [%d] node accessed: %d \\n\", i, internalNode.getKey(i), low, nodeCount);\r\n                        System.out.printf(\"Content of the index node: %s\\n\", curr.getKeys().toString());\r\n\r\n                    }\r\n\r\n                    break;\r\n                }\r\n            }\r\n        }\r\n\r\n        // after leaf node is found, find all records with same key\r\n        LeafNode curLeaf = (LeafNode) curr;\r\n        boolean found = false;\r\n        while (!found && curLeaf != null) {\r\n            // finding same keys within leaf node\r\n            if (nodeCount <= 5) {\r\n                nodeCount++;\r\n                System.out.printf(\"Content of the leaf node: %s, node accessed: %s\\n\", curLeaf.getNextNode().getKeys().toString(), nodeCount);\r\n\r\n            }\r\n            for (int i = 0; i < curLeaf.getKeys().size(); i++) {\r\n                // found same key, add into result list\r\n                if (curLeaf.getKey(i) >= low && curLeaf.getKey(i) <= high) {\r\n                    result.add(curLeaf.getAddress(i));\r\n                    continue;\r\n                }\r\n                // if curKey > searching key, no need to continue searching\r\n                if (curLeaf.getKey(i) > high) {\r\n                    found = true;\r\n                    break;\r\n                }\r\n            }\r\n            if (!found) {\r\n                // trying to check sibling node has remaining records of same key\r\n                if (curLeaf.getNextNode() != null) {\r\n                    curLeaf = (LeafNode) curLeaf.getNextNode();\r\n                    nodeCount++;\r\n                    siblingCount++;\r\n                } else {\r\n                    break;\r\n                }\r\n            }\r\n        }\r\n        if (siblingCount > 0) {\r\n\r\n            System.out.printf(\"the No of nodes accesses in siblings: %d \\n\", siblingCount);\r\n\r\n        }\r\n\r\n        System.out.printf(\"Searching numOfVotes range of %d - %d, the No of records accessed: %d\\n\", low, high, result.size());\r\n        System.out.printf(\"Total No of nodes accesses: %d, total No of block accesses: %d\\n\", nodeCount, result.size() + nodeCount);\r\n        return result;\r\n    }\r\n\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/BPlusTree/BPTree.java b/BPlusTree/BPTree.java
+--- a/BPlusTree/BPTree.java	(revision d6e3e5e378662a3fbecfe7fc6f8a97f9f039be1f)
++++ b/BPlusTree/BPTree.java	(date 1676364312327)
+@@ -585,5 +585,163 @@
+         System.out.printf("Total No of nodes accesses: %d, total No of block accesses: %d\n", nodeCount, result.size() + nodeCount);
+         return result;
+     }
++    public ArrayList<Address> doRangeRecordsRetrieval1(int low, int high) {
++        ArrayList<Address> result = new ArrayList<>();
++        int nodeCount = 1;
++
++        Node curr = root;
++        InternalNode internalNode;
++
++        System.out.printf("access root and nodes accesses: %d, contents of the root node: %s\n", nodeCount, this.root.getKeys().toString());
++
++
++        while (!curr.getIsLeafNode()) {
++            internalNode = (InternalNode) curr;
++            int no_of_keys = internalNode.getKeys().size();
++            for (int i = 0; i < no_of_keys; i++) {
++                if (low <= internalNode.getKey(i)) {
++                    curr = internalNode.getChildNode(i);
++                    nodeCount++;
++                    if (nodeCount <= 5) {
++                        System.out.printf("Go to child node [%d], current key [%d], searching key [%d] node accessed: %d \n", i, internalNode.getKey(i), low, nodeCount);
++                        System.out.printf("Content of the index node: %s\n", curr.getKeys().toString());
++
++                    }
++
++                    break;
++                }
++
++                if (i == no_of_keys - 1) {
++
++                    curr = internalNode.getChildNode(i + 1);
++                    nodeCount++;
++
++                    if (nodeCount <= 5) {
++                        System.out.printf("Go to child node [%d], current key [%d], searching key [%d] node accessed: %d \n", i, internalNode.getKey(i), low, nodeCount);
++//                        System.out.printf("Content of the index node: %s\n", curr.getKeys().toString());
++
++                    }
++
++                    break;
++                }
++            }
++        }
++
++        // after leaf node is found, find all records with same key
++        LeafNode curLeaf = (LeafNode) curr;
++        boolean found = false;
++        while (!found && curLeaf != null) {
++            // finding same keys within leaf node
++            if (nodeCount <= 5) {
++                nodeCount++;
++                System.out.printf("Content of the leaf node: %s, node accessed: %s\n", curLeaf.getNextNode().getKeys().toString(), nodeCount);
++
++            }
++            for (int i = 0; i < curLeaf.getKeys().size(); i++) {
++                // found same key, add into result list
++                if (curLeaf.getKey(i) >= low && curLeaf.getKey(i) <= high) {
++                    result.add(curLeaf.getAddress(i));
++                    System.out.printf("Key: %s, NV: %d\n", curLeaf.getKeys().toString(), nodeCount);
++                    continue;
++                }
++                // if curKey > searching key, no need to continue searching
++                if (curLeaf.getKey(i) > high) {
++                    found = true;
++                    break;
++                }
++            }
++            if (!found) {
++                // trying to check sibling node has remaining records of same key
++                if (curLeaf.getNextNode() != null) {
++                    curLeaf = (LeafNode) curLeaf.getNextNode();
++                    nodeCount++;
++                } else {
++                    break;
++                }
++            }
++        }
++
++        //this 2 need
++        System.out.printf("Searching numOfVotes range of %d - %d, the No of records accessed: %d\n", low, high, result.size());
++        System.out.printf("Total No of nodes accesses: %d, total No of block accesses: %d\n", nodeCount, result.size() + nodeCount);
++
++        return result;
++    }
++
++    public ArrayList<Address> getRecordsWithKeyInRange(int min, int max) {
++        return getRecordsWithKeyInRange(min, max, true);
++    }
++    public ArrayList<Address> getRecordsWithKeyInRange(int min, int max, boolean isVerbose){
++        ArrayList<Address> result = new ArrayList<>();
++        int nodeAccess = 1; // access the root??
++        int siblingAccess = 0;
++        if (isVerbose) {
++            Log.d("B+Tree.rangeSearch", "[Node Access] Access root node");
++        }
++        Node curNode = root;
++        ParentNode parentNode;
++        // searching for leaf node with key
++        while (!curNode.getIsLeaf()){
++            parentNode = (ParentNode) curNode;
++            for (int i=0; i<parentNode.getKeys().size(); i++) {
++                if ( min <= parentNode.getKey(i)){
++                    if (isVerbose) {
++                        Log.v("B+Tree.rangeSearch", curNode.toString());
++                        Log.d("B+Tree.rangeSearch", String.format("[Node Access] follow pointer [%d]: min(%d)<=curKey(%d)", i, min, parentNode.getKey(i)));
++                    }
++                    curNode = parentNode.getChild(i);
++                    nodeAccess++;
++                    break;
++                }
++                if (i == parentNode.getKeys().size()-1){
++                    if (isVerbose) {
++                        Log.v("B+Tree.rangeSearch", curNode.toString());
++                        Log.d("B+Tree.rangeSearch", String.format("[Node Access] follow pointer [%d+1]: last key and min(%d)>curKey(%d)", i, min, parentNode.getKey(i)));
++                    }
++                    curNode = parentNode.getChild(i+1);
++                    nodeAccess++;
++                    break;
++                }
++            }
++        }
++        // after leaf node is found, find all records with same key
++        LeafNode curLeaf = (LeafNode) curNode;
++        boolean done = false;
++        while(!done && curLeaf!=null){
++            // finding same keys within leaf node
++            for (int i=0; i<curLeaf.getKeys().size(); i++){
++                // found same key, add into result list
++                if (curLeaf.getKey(i) >= min && curLeaf.getKey(i) <= max){
++                    result.add(curLeaf.getRecord(i));
++                    continue;
++                }
++                // if curKey > searching key, no need to continue searching
++                if (curLeaf.getKey(i) > max){
++                    done = true;
++                    break;
++                }
++            }
++            if (!done){
++                // trying to check sibling node has remaining records of same key
++                if (curLeaf.getNext()!= null){
++                    curLeaf = (LeafNode) curLeaf.getNext();
++                    nodeAccess++;
++                    siblingAccess++;
++                } else {
++                    break;
++                }
++            }
++        }
++        if (siblingAccess > 0){
++            if (isVerbose) {
++                Log.d("B+Tree.rangeSearch", "[Node Access] " + siblingAccess + " sibling node access");
++            }
++        }
++        if (isVerbose) {
++            Log.i("B+Tree.rangeSearch", String.format("input(%d, %d): %d records found with %d node access", min, max, result.size(), nodeAccess));
++        }
++        return result;
++    }
++
+ 
+ }
+Index: Main.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import java.text.DecimalFormat;\r\nimport java.util.*;\r\n\r\nimport BPlusTree.BPTree;\r\nimport Storage.Disk;\r\nimport Storage.Address;\r\nimport Storage.Record;\r\n\r\n//imports for buffer reader\r\nimport java.io.BufferedReader;\r\nimport java.io.File;\r\nimport java.io.FileNotFoundException;\r\nimport java.io.FileReader;\r\nimport java.io.IOException;\r\nimport java.util.ArrayList;\r\nimport java.util.List;\r\n\r\nimport Config.Config;\r\n\r\npublic class Main implements Config {\r\n    private Disk disk;\r\n    private BPTree BpTree;\r\n\r\n    public static List<Record> doRecordReading(String directory) throws FileNotFoundException {\r\n        System.out.println(\"Loading data in \" + directory + \" ...\");\r\n        File recordFile = new File(directory);\r\n        if (!recordFile.exists()) { //if file not cannot be found,\r\n            throw new FileNotFoundException(\"File does not exist, Try to change the path of the tsv file in the Config file.\");\r\n        }\r\n        System.out.println(\"Reading data from \" + directory + \" ...\");\r\n\r\n        String l;\r\n        String[] category = null; // stores tconst, AverageRating and NumVotes\r\n        BufferedReader reader = null;\r\n        List<Record> records = new ArrayList<>();\r\n\r\n        try {\r\n            reader = new BufferedReader(new FileReader(recordFile));\r\n            reader.readLine(); // ignore the first line\r\n            while ((l = reader.readLine()) != null) {\r\n                category = l.split(\"\\\\t\");\r\n                //split each row of records according to categories\r\n                // combine them into a class\r\n                Record r = new Record(category[0], Float.parseFloat(category[1]), Integer.parseInt(category[2]));\r\n                records.add(r);\r\n            }\r\n        } catch (IOException e) {\r\n            throw new RuntimeException(e);\r\n        } finally {\r\n            if (reader != null) {\r\n                try {\r\n                    reader.close();\r\n                } catch (IOException e) {\r\n                    throw new RuntimeException(e);\r\n                }\r\n            }\r\n        }\r\n        System.out.println(\"Total number of records loaded: \" + records.size());\r\n        return records;\r\n    }\r\n\r\n    public void doBlockCreation(int blkSize) throws Exception {\r\n        disk = new Disk(blkSize); //To allocate the disk space\r\n        BpTree = new BPTree(blkSize); //To create the BPlusTree\r\n        List<Record> data = doRecordReading(DATA_FILE_PATH);\r\n\r\n        System.out.println();\r\n        System.out.println(\"Running program...\");\r\n        System.out.println(\"Inserting the data from the tsv file into the disk and creating the B+ Tree...\");\r\n\r\n        Address dataAddr;  //Address that the data is going to be stored\r\n        for (Record d : data) {\r\n            dataAddr = disk.doRecordAppend(d); //Insert the records data into disk\r\n            BpTree.doBPTreeInsertion(d.getNumVotes(), dataAddr); //Since we build the B+ tree on the \"numVotes\" attribute, so we extract the attribute\r\n        }\r\n        System.out.println(\"Run Successful! The records have been successfully inserted into the disk and the B+ Tree has been created.\");\r\n        System.out.println();\r\n    }\r\n\r\n    public void runExperiment1() {\r\n        System.out.println(\"\\nRunning Experiment 1...\");\r\n        disk.showDetails();\r\n    }\r\n\r\n    public void runExperiment2() {\r\n        System.out.println(\"\\nRunning Experiment 2...\");\r\n        BpTree.showExperiment2();\r\n    }\r\n\r\n    public void runExperiment3() {\r\n\r\n    }\r\n\r\n    public void runExperiment4() {\r\n\r\n    }\r\n\r\n    public void runExperiment5() {\r\n\r\n    }\r\n\r\n\r\n    public void displayMenu(int type) throws Exception {\r\n        if (type == 1) { //To select block size\r\n            System.out.println(\"======================================================================================\");\r\n            System.out.println(\"            << Welcome to Group 8's DSP Project 1 Implementation >>\");\r\n            System.out.println();\r\n            System.out.println(\"What would you like to do?\");\r\n            System.out.println(\"1) Select an experiment \\n2) Exit\");\r\n            System.out.println(\"======================================================================================\");\r\n            System.out.print(\"You have selected: \");\r\n            Scanner in = new Scanner(System.in);\r\n            String input = in.nextLine();\r\n\r\n            switch (input) {\r\n                case \"1\":\r\n                    doBlockCreation(BLOCK_SIZE_200);\r\n                    break;\r\n                case \"2\":\r\n                    System.exit(0);\r\n            }\r\n        } else {\r\n            String input;\r\n            do {\r\n                System.out.println(\"======================================================================================\");\r\n                System.out.println(\"Which experiment would you like to run?\");\r\n                System.out.println(\"Experiment (1): Store the data on the disk & show No. of Records, Size of a Record, No. of Records stored in a Block, and No. of Blocks for storing data.\");\r\n                System.out.println(\"Experiment (2): Build a B+ tree on the attribute ”numVote” by inserting the records sequentially & show the B+ Tree's parameter n value, No. of Nodes, No. of Levels and Root Node Content.\");\r\n                System.out.println(\"Experiment (3): Retrieve movies with the “numVotes” equal to 500 and its required statistics.\");\r\n                System.out.println(\"Experiment (4): Retrieve movies with votes between 30,000 and 40,000 and its required statistics.\");\r\n                System.out.println(\"Experiment (5): Delete movies with the attribute “numVotes” equal to 1,000 and its required statistics.\");\r\n                System.out.println(\"           (exit): Exit \");\r\n                System.out.println(\"======================================================================================\");\r\n                System.out.print(\"Selection: \");\r\n                Scanner in = new Scanner(System.in);\r\n                input = in.nextLine();\r\n                switch (input) {\r\n                    case \"1\":\r\n                        runExperiment1();\r\n                        break;\r\n                    case \"2\":\r\n                        runExperiment2();\r\n                        break;\r\n                    case \"3\":\r\n                        runExperiment3();\r\n                        break;\r\n                    case \"4\":\r\n                        runExperiment4();\r\n                        break;\r\n                    case \"5\":\r\n                        runExperiment5();\r\n                        break;\r\n                }\r\n\r\n            } while (!input.equals(\"exit\"));\r\n        }\r\n    }\r\n\r\n    //End of MainApp Functions\r\n    public static void main(String[] args) {\r\n        try {\r\n            Main app = new Main();\r\n            app.displayMenu(1);\r\n            app.displayMenu(2);\r\n        } catch (Exception e) {\r\n            e.printStackTrace();\r\n        }\r\n    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Main.java b/Main.java
+--- a/Main.java	(revision d6e3e5e378662a3fbecfe7fc6f8a97f9f039be1f)
++++ b/Main.java	(date 1676364124633)
+@@ -88,10 +88,23 @@
+     }
+ 
+     public void runExperiment3() {
+-
++        System.out.println("\nRunning Experiment 4...");
++        System.out.println(BpTree.doRangeRecordsRetrieval(30000,40000));
+     }
+ 
+     public void runExperiment4() {
++        System.out.println("\nRunning==========================================...");
++        System.out.println(BpTree.doRangeRecordsRetrieval1(30000,40000));
++
++        ArrayList<Address> e4RecordAddresses = BpTree.getRecordsWithKeyInRange(30000,40000);
++        ArrayList<Record> records = disk.getRecords(e4RecordAddresses);
++        // records collected, do calculate average rating
++        double avgRating = 0;
++        for (Record record: records) {
++            avgRating += record.getAvgRating();
++        }
++        avgRating /= records.size();
++        Log.i("Average rating="+avgRating);
+ 
+     }
+ 
