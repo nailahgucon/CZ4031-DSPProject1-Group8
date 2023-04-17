@@ -1,9 +1,5 @@
  # CZ4031-DSPProject1-Group8
 ### Project 1 Implementation for CZ4031 DATABASE SYSTEM PRINCIPLES
 
-**Members:**
-
-CHIU WEI JIE, REEVES <br>
-GUCON NAILAH GINYLLE PABILONIA <br>
-IVAN PUA JUN HAO <br>
-NUR DILAH BINTE ZAINI <br>
+**Before running the code:**
+- Follow the instructions found in the Installation Guide.pdf
